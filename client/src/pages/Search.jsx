@@ -15,6 +15,7 @@ export default function Search() {
     })
     const [loading,setLoading] = useState(false);
     const [listings,setListings] = useState([]);
+    const [showMore,setShowMore] = useState(false);
 
     useEffect(()=>{
         const urlParams = new URLSearchParams(location.search);
@@ -51,6 +52,10 @@ export default function Search() {
             const searchQuery = urlParams.toString();
             const res = await fetch(`/api/listing/get?${searchQuery}`);
             const data = await res.json();
+            if(data.length>8)
+            {
+                setShowMore(true);
+            }
             if(data.success===false)
             {
                 console.log(data.message);
@@ -102,6 +107,22 @@ export default function Search() {
 
         navigate(`/search?${searchQuery}`);
     };
+
+    const onShowMoreClick = async (ev)=>{
+        const numberOfListings = listings.length();
+        const startIndex = numberOfListings;
+        const urlParams = new URLSearchParams(location.search);
+        urlParams.set("startIndex",startIndex);
+        const searchQuery = urlParams.toString();
+
+        const res = await fetch(`/api/listing/get?${searchQuery}`);
+        const data = await res.json();
+        if(data.length<9)
+        {
+            showMore(false);
+        }
+        setListings([...listings,...data]);
+    }
 
 
   return (
@@ -207,6 +228,13 @@ export default function Search() {
                 {!loading && listings && listings.map((listing) => (
                     <ListingItem key={listing._id} listing={listing}/>
                 ))}
+
+                {showMore && (
+                    <button className='text-green-700 hover:underline p-7 w-full text-center'
+                    onClick={onShowMoreClick}>
+                        Show More
+                    </button>
+                )}
             </div>
         </div>
     </div>
